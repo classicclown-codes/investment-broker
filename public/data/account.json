@@ -1,0 +1,16 @@
+{
+  "portfolioValue": 412350.42,
+  "pendingDeposits": 1,
+  "activeStrategies": 2,
+  "holdings": [
+    { "asset": "Equities", "value": 210000, "color": "#f59e0b" },
+    { "asset": "Fixed Income", "value": 90000, "color": "#10b981" },
+    { "asset": "Crypto", "value": 80000, "color": "#6366f1" },
+    { "asset": "Alternatives", "value": 32050.42, "color": "#f97316" }
+  ],
+  "recentTransactions": [
+    { "id": "tx_1001", "asset": "USDT", "amount": 5000, "status": "Pending", "date": "2026-05-27" },
+    { "id": "tx_1000", "asset": "BTC", "amount": 0.025, "status": "Confirmed", "date": "2026-05-20" },
+    { "id": "tx_0999", "asset": "ETH", "amount": 0.8, "status": "Confirmed", "date": "2026-05-18" }
+  ]
+}
