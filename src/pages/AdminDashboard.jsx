@@ -5,6 +5,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 export default function AdminDashboard() {
   const auth = useAuth()
   const [clients, setClients] = useState([])
+  const [fundingRequests, setFundingRequests] = useState([])
   const [pendingPayments, setPendingPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -61,19 +62,18 @@ export default function AdminDashboard() {
             }))
           )
 
-          setPendingPayments(
-            (paymentData || [])
-              .filter((tx) => ['pending', 'awaiting_confirmation', 'submitted'].includes((tx.status || '').toLowerCase()))
-              .map((tx) => ({
-                id: tx.id,
-                accountId: tx.account_id,
-                reference: tx.reference || tx.id,
-                amount: tx.amount,
-                asset: tx.asset,
-                status: tx.status,
-                createdAt: tx.created_at,
-              }))
-          )
+          const requests = (paymentData || []).map((tx) => ({
+            id: tx.id,
+            accountId: tx.account_id,
+            reference: tx.reference || tx.id,
+            amount: tx.amount,
+            asset: tx.asset,
+            status: tx.status,
+            createdAt: tx.created_at,
+          }))
+
+          setFundingRequests(requests)
+          setPendingPayments(requests.filter((tx) => ['pending', 'awaiting_confirmation', 'submitted'].includes((tx.status || '').toLowerCase())))
         }
       } catch (err) {
         if (mounted) {
@@ -96,7 +96,8 @@ export default function AdminDashboard() {
     }
   }, [])
 
-  const totalAssets = clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
+  const requestsTotal = fundingRequests.reduce((sum, request) => sum + (request.amount || 0), 0)
+  const totalAssets = requestsTotal || clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
   const activeClients = clients.filter((client) => client.status === 'Active').length
   const pendingReviewCount = pendingPayments.length
   const projectedGrowthMin = totalAssets * 0.2
@@ -114,20 +115,32 @@ export default function AdminDashboard() {
       if (transactionError) throw transactionError
 
       if (payment?.accountId) {
+        const { error: accountError } = await supabase
+          .from('accounts')
+          .update({ portfolio_value: payment.amount || 0, pending_deposits: 0 })
+          .eq('id', payment.accountId)
+
+        if (accountError) throw accountError
+
         const { error: clientError } = await supabase
           .from('clients')
-          .update({ status: 'Active' })
+          .update({ status: 'Active', portfolio_value: payment.amount || 0 })
           .eq('account_id', payment.accountId)
 
         if (clientError) throw clientError
 
         setClients((prev) =>
           prev.map((client) =>
-            client.accountId === payment.accountId ? { ...client, status: 'Active' } : client
+            client.accountId === payment.accountId
+              ? { ...client, status: 'Active', portfolioValue: payment.amount || client.portfolioValue }
+              : client
           )
         )
       }
 
+      setFundingRequests((prev) =>
+        prev.map((request) => (request.id === paymentId ? { ...request, status: 'Confirmed' } : request))
+      )
       setPendingPayments((prev) => prev.filter((paymentItem) => paymentItem.id !== paymentId))
     } catch (err) {
       setPaymentError(err.message || 'Unable to confirm payment.')
@@ -203,7 +216,7 @@ export default function AdminDashboard() {
                 <div>Strategy</div>
                 <div>Activity</div>
               </div>
-              <div className="space-y-3 p-4">
+                      <div className="space-y-3 p-4">
                 {clients.map((client) => (
                   <div key={client.id} className="grid gap-3 rounded-2xl border border-[#2a2014] bg-[#0e0c08] p-4 text-sm text-[#f2e9c8] md:grid-cols-6 md:items-center md:gap-4">
                     <div className="space-y-1 md:col-span-2">
@@ -228,6 +241,33 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-[#2a2014] pt-6">
+              <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50]">Submitted funding requests</div>
+              <div className="mt-4 space-y-3">
+                {fundingRequests.length === 0 ? (
+                  <div className="text-sm text-[#b3a37d]">No funding requests have been submitted yet.</div>
+                ) : (
+                  fundingRequests.map((request) => {
+                    const client = clients.find((clientItem) => clientItem.accountId === request.accountId)
+                    return (
+                      <div key={request.id} className="rounded-2xl border border-[#2a2014] bg-[#0d0b08] p-4 text-sm text-[#f2e9c8]">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <div className="font-semibold">{request.asset || 'Funding request'}</div>
+                            <div className="text-xs text-[#9d8f6b]">{client?.name || 'Client'} • {request.reference}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-[#b3a37d]">${request.amount?.toLocaleString() || '—'}</div>
+                            <div className="text-xs uppercase tracking-[0.25em] text-[#7a6a50]">{request.status}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </div>
             </div>
           )}

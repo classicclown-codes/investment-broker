@@ -110,6 +110,8 @@ export default function Dashboard() {
   const totalHoldings = holdings.reduce((sum, holding) => sum + (holding.value || 0), 0)
   const returnsAmount = investedAmount > 0 ? portfolioValue - investedAmount : 0
   const returnsPct = investedAmount > 0 ? (returnsAmount / investedAmount) * 100 : 0
+  const hasPendingDeposits = pending_deposits > 0
+  const isInvestmentActive = !hasPendingDeposits && portfolioValue > 0
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -133,8 +135,31 @@ export default function Dashboard() {
             )}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Link to="/apply" className="inline-flex items-center justify-center rounded-2xl border border-[#7d6a40] bg-[#0f0d09]/80 px-5 py-3 text-sm font-semibold text-[#f2e6c8] hover:bg-[#1b1710] transition">Submit funding</Link>
-            <div className="inline-flex items-center justify-center rounded-2xl bg-[#d4b05f] px-5 py-3 text-sm font-semibold text-black">Admin review required</div>
+            {isInvestmentActive ? (
+              <>
+                <div className="rounded-3xl border border-[#7d6a40] bg-[#11100d]/95 p-5 text-sm text-[#f2e9c8]">
+                  <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Growth monitor</div>
+                  <div className="mt-4 flex items-center gap-4">
+                    <PortfolioMiniChart holdings={holdings} size={90} />
+                    <div>
+                      <div className="text-sm text-[#b3a37d]">Monitor invested amount</div>
+                      <div className="mt-3 text-2xl font-semibold text-[#f7e9c8]">${investedAmount.toLocaleString()}</div>
+                      <div className="mt-2 text-sm text-[#b3a37d]">{returnsPct > 0 ? `${returnsPct.toFixed(1)}% return` : 'Tracking performance'} on invested capital.</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-[#7d6a40] bg-[#11100d]/95 p-5 text-sm text-[#f2e9c8]">
+                  <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Investment signal</div>
+                  <div className="mt-4 font-semibold text-[#f7e9c8]">Active monitoring</div>
+                  <div className="mt-3 text-sm text-[#b3a37d]">Your invested capital is live and being tracked rather than waiting for admin review.</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/apply" className="inline-flex items-center justify-center rounded-2xl border border-[#7d6a40] bg-[#0f0d09]/80 px-5 py-3 text-sm font-semibold text-[#f2e6c8] hover:bg-[#1b1710] transition">Submit funding</Link>
+                <div className="inline-flex items-center justify-center rounded-2xl bg-[#d4b05f] px-5 py-3 text-sm font-semibold text-black">Admin review required</div>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -143,7 +168,7 @@ export default function Dashboard() {
         <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
           <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Portfolio value</div>
           <div className="text-4xl font-semibold text-[#f7e9c8]">${portfolioValue.toLocaleString()}</div>
-          <p className="mt-2 text-sm text-[#b3a37d]">Current account value.</p>
+          <p className="mt-2 text-sm text-[#b3a37d]">Total investments under management.</p>
         </div>
         <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
           <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Invested capital</div>
