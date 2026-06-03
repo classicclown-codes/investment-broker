@@ -96,7 +96,7 @@ export default function AdminDashboard() {
 
   const totalAssets = clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
   const activeClients = clients.filter((client) => client.status === 'Active').length
-  const pendingClients = clients.filter((client) => client.status !== 'Active').length
+  const pendingReviewCount = pendingPayments.length
 
   const handleConfirmPayment = async (paymentId) => {
     setPaymentError(null)
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
         </div>
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Pending reviews</div>
-          <div className="text-3xl font-semibold text-[#f7e9c8]">{pendingClients}</div>
+          <div className="text-3xl font-semibold text-[#f7e9c8]">{pendingReviewCount}</div>
         </div>
       </section>
 
@@ -163,27 +163,37 @@ export default function AdminDashboard() {
           ) : clients.length === 0 ? (
             <div className="text-sm text-[#b3a37d]">No client records are available yet.</div>
           ) : (
-            <div className="overflow-x-auto rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
-              <div className="grid grid-cols-6 gap-4 border-b border-[#2a2014] bg-[#11100d] px-4 py-3 text-xs uppercase tracking-[0.32em] text-[#7a6a50]">
+            <div className="overflow-hidden rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
+              <div className="hidden grid-cols-6 gap-4 border-b border-[#2a2014] bg-[#11100d] px-4 py-3 text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:grid">
                 <div className="col-span-2">Client</div>
                 <div>Portfolio</div>
                 <div>Status</div>
                 <div>Strategy</div>
                 <div>Activity</div>
               </div>
-              <div className="space-y-2 p-4">
+              <div className="space-y-3 p-4">
                 {clients.map((client) => (
-                  <div key={client.id} className="grid grid-cols-6 gap-4 rounded-2xl bg-[#0e0c08] p-4 text-sm text-[#f2e9c8]">
-                    <div className="col-span-2 space-y-1">
+                  <div key={client.id} className="grid gap-3 rounded-2xl border border-[#2a2014] bg-[#0e0c08] p-4 text-sm text-[#f2e9c8] md:grid-cols-6 md:items-center md:gap-4">
+                    <div className="space-y-1 md:col-span-2">
                       <div className="font-semibold">{client.name}</div>
                       <div className="text-xs text-[#9d8f6b]">{client.email}</div>
                     </div>
-                    <div>${client.portfolioValue.toLocaleString()}</div>
                     <div>
+                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Portfolio</div>
+                      <div>${client.portfolioValue.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Status</div>
                       <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${client.status === 'Active' ? 'bg-[#1f462b]/80 text-[#8ee0a8]' : 'bg-[#4a291e]/80 text-[#f7c1b2]'}`}>{client.status}</span>
                     </div>
-                    <div>{client.strategy}</div>
-                    <div>{client.lastActivity}</div>
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Strategy</div>
+                      {client.strategy}
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Activity</div>
+                      {client.lastActivity}
+                    </div>
                   </div>
                 ))}
               </div>
