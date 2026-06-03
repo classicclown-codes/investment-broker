@@ -24,6 +24,7 @@ Authentication:
 
 Database setup:
 - Run `supabase-schema.sql` in the Supabase SQL editor to create the required tables
+- Ensure your admin user has `user_metadata.role` set to `admin` in Supabase so admin RLS bypass will work
 
 Deployment to Vercel:
 - A `vercel.json` config file is included for static build and API routes

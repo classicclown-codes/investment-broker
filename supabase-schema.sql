@@ -69,29 +69,61 @@ create table if not exists holdings (
 create index if not exists holdings_account_id_idx on holdings(account_id);
 
 alter table accounts enable row level security;
+drop policy if exists "Accounts: authenticated users can manage own rows" on accounts;
 create policy "Accounts: authenticated users can manage own rows" on accounts
   for all
-  using (auth.role() = 'authenticated' and user_id = auth.uid())
-  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+  using (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  )
+  with check (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  );
 
 alter table clients enable row level security;
+drop policy if exists "Clients: authenticated users can manage own rows" on clients;
 create policy "Clients: authenticated users can manage own rows" on clients
   for all
-  using (auth.role() = 'authenticated' and user_id = auth.uid())
-  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+  using (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  )
+  with check (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  );
 
 alter table transactions enable row level security;
+drop policy if exists "Transactions: authenticated users can manage own rows" on transactions;
 create policy "Transactions: authenticated users can manage own rows" on transactions
   for all
-  using (auth.role() = 'authenticated' and user_id = auth.uid())
-  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+  using (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  )
+  with check (
+    (auth.role() = 'authenticated' and user_id = auth.uid())
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
+  );
 
 alter table holdings enable row level security;
+drop policy if exists "Holdings: authenticated users can manage account holdings" on holdings;
 create policy "Holdings: authenticated users can manage account holdings" on holdings
   for all
   using (
-    auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid())
+    (auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid()))
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
   )
   with check (
-    auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid())
+    (auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid()))
+    or auth.jwt() -> 'user_metadata' ->> 'role' = 'admin'
+    or auth.jwt() ->> 'role' = 'admin'
   );
