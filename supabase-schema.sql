@@ -67,3 +67,31 @@ create table if not exists holdings (
 );
 
 create index if not exists holdings_account_id_idx on holdings(account_id);
+
+alter table accounts enable row level security;
+create policy "Accounts: authenticated users can manage own rows" on accounts
+  for all
+  using (auth.role() = 'authenticated' and user_id = auth.uid())
+  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+
+alter table clients enable row level security;
+create policy "Clients: authenticated users can manage own rows" on clients
+  for all
+  using (auth.role() = 'authenticated' and user_id = auth.uid())
+  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+
+alter table transactions enable row level security;
+create policy "Transactions: authenticated users can manage own rows" on transactions
+  for all
+  using (auth.role() = 'authenticated' and user_id = auth.uid())
+  with check (auth.role() = 'authenticated' and user_id = auth.uid());
+
+alter table holdings enable row level security;
+create policy "Holdings: authenticated users can manage account holdings" on holdings
+  for all
+  using (
+    auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid())
+  )
+  with check (
+    auth.role() = 'authenticated' and account_id in (select id from accounts where user_id = auth.uid())
+  );
