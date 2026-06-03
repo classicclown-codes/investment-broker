@@ -208,68 +208,70 @@ export default function AdminDashboard() {
           ) : clients.length === 0 ? (
             <div className="text-sm text-[#b3a37d]">No client records are available yet.</div>
           ) : (
-            <div className="overflow-hidden rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
-              <div className="hidden grid-cols-6 gap-4 border-b border-[#2a2014] bg-[#11100d] px-4 py-3 text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:grid">
-                <div className="col-span-2">Client</div>
-                <div>Portfolio</div>
-                <div>Status</div>
-                <div>Strategy</div>
-                <div>Activity</div>
+            <>
+              <div className="overflow-hidden rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
+                <div className="hidden grid-cols-6 gap-4 border-b border-[#2a2014] bg-[#11100d] px-4 py-3 text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:grid">
+                  <div className="col-span-2">Client</div>
+                  <div>Portfolio</div>
+                  <div>Status</div>
+                  <div>Strategy</div>
+                  <div>Activity</div>
+                </div>
+                <div className="space-y-3 p-4">
+                  {clients.map((client) => (
+                    <div key={client.id} className="grid gap-3 rounded-2xl border border-[#2a2014] bg-[#0e0c08] p-4 text-sm text-[#f2e9c8] md:grid-cols-6 md:items-center md:gap-4">
+                      <div className="space-y-1 md:col-span-2">
+                        <div className="font-semibold">{client.name}</div>
+                        <div className="text-xs text-[#9d8f6b]">{client.email}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Portfolio</div>
+                        <div>${client.portfolioValue.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Status</div>
+                        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${client.status === 'Active' ? 'bg-[#1f462b]/80 text-[#8ee0a8]' : 'bg-[#4a291e]/80 text-[#f7c1b2]'}`}>{client.status}</span>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Strategy</div>
+                        {client.strategy}
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Activity</div>
+                        {client.lastActivity}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-                      <div className="space-y-3 p-4">
-                {clients.map((client) => (
-                  <div key={client.id} className="grid gap-3 rounded-2xl border border-[#2a2014] bg-[#0e0c08] p-4 text-sm text-[#f2e9c8] md:grid-cols-6 md:items-center md:gap-4">
-                    <div className="space-y-1 md:col-span-2">
-                      <div className="font-semibold">{client.name}</div>
-                      <div className="text-xs text-[#9d8f6b]">{client.email}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Portfolio</div>
-                      <div>${client.portfolioValue.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Status</div>
-                      <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${client.status === 'Active' ? 'bg-[#1f462b]/80 text-[#8ee0a8]' : 'bg-[#4a291e]/80 text-[#f7c1b2]'}`}>{client.status}</span>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Strategy</div>
-                      {client.strategy}
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50] md:hidden">Activity</div>
-                      {client.lastActivity}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="mt-8 border-t border-[#2a2014] pt-6">
-              <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50]">Submitted funding requests</div>
-              <div className="mt-4 space-y-3">
-                {fundingRequests.length === 0 ? (
-                  <div className="text-sm text-[#b3a37d]">No funding requests have been submitted yet.</div>
-                ) : (
-                  fundingRequests.map((request) => {
-                    const client = clients.find((clientItem) => clientItem.accountId === request.accountId)
-                    return (
-                      <div key={request.id} className="rounded-2xl border border-[#2a2014] bg-[#0d0b08] p-4 text-sm text-[#f2e9c8]">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <div className="font-semibold">{request.asset || 'Funding request'}</div>
-                            <div className="text-xs text-[#9d8f6b]">{client?.name || 'Client'} • {request.reference}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-[#b3a37d]">${request.amount?.toLocaleString() || '—'}</div>
-                            <div className="text-xs uppercase tracking-[0.25em] text-[#7a6a50]">{request.status}</div>
+              <div className="mt-8 border-t border-[#2a2014] pt-6">
+                <div className="text-xs uppercase tracking-[0.32em] text-[#7a6a50]">Submitted funding requests</div>
+                <div className="mt-4 space-y-3">
+                  {fundingRequests.length === 0 ? (
+                    <div className="text-sm text-[#b3a37d]">No funding requests have been submitted yet.</div>
+                  ) : (
+                    fundingRequests.map((request) => {
+                      const client = clients.find((clientItem) => clientItem.accountId === request.accountId)
+                      return (
+                        <div key={request.id} className="rounded-2xl border border-[#2a2014] bg-[#0d0b08] p-4 text-sm text-[#f2e9c8]">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <div className="font-semibold">{request.asset || 'Funding request'}</div>
+                              <div className="text-xs text-[#9d8f6b]">{client?.name || 'Client'} • {request.reference}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-[#b3a37d]">${request.amount?.toLocaleString() || '—'}</div>
+                              <div className="text-xs uppercase tracking-[0.25em] text-[#7a6a50]">{request.status}</div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })
-                )}
+                      )
+                    })
+                  )}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
