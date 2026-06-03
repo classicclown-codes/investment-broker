@@ -17,6 +17,7 @@ const investmentOptions = ['Stocks', 'Real Estate', 'Bonds', 'Crypto', 'Commodit
 const strategyOptions = ['Conservative', 'Balanced', 'Aggressive Growth', 'Income-Focused']
 const riskOptions = ['Low', 'Moderate', 'High', 'Very High']
 const horizonOptions = ['< 1 Year', '1–3 Years', '3–5 Years', '5–10 Years', '10+ Years']
+const paymentMethods = ['Bank transfer', 'Credit card', 'Wire transfer', 'Cryptocurrency']
 
 const initialForm = {
   fullName: '',
@@ -30,6 +31,7 @@ const initialForm = {
   investGoal: '',
   txReference: '',
   fundingSource: '',
+  paymentMethod: '',
   agreeTerms: false,
 }
 
@@ -139,7 +141,9 @@ export default function InvestmentApp() {
         date: new Date().toISOString().split('T')[0],
         reference: form.txReference,
         funding_source: form.fundingSource,
-        notes: form.investGoal,
+        notes: [form.investGoal, form.paymentMethod ? `Payment method: ${form.paymentMethod}` : '']
+          .filter(Boolean)
+          .join(' | '),
       }
 
       const { error: transactionError } = await supabase.from('transactions').insert(transactionPayload)
@@ -169,9 +173,9 @@ export default function InvestmentApp() {
   const canNext = () => {
     if (step === 0) return form.fullName && form.email && form.phone
     if (step === 1) return form.investAmount && form.investTypes.length > 0
-    if (step === 2) return form.strategy && form.riskTolerance
-    if (step === 3) return form.txReference.trim().length > 5 && form.fundingSource.trim().length > 5
-    if (step === 4) return form.agreeTerms
+    if (step === 2) return Boolean(form.paymentMethod)
+    if (step === 3) return form.strategy && form.riskTolerance
+    if (step === 4) return form.txReference.trim().length > 5 && form.fundingSource.trim().length > 5 && form.agreeTerms
     return true
   }
 
@@ -194,6 +198,7 @@ export default function InvestmentApp() {
                   ['Email', form.email],
                   ['Phone', form.phone],
                   ['Amount', amountLabel],
+                  ['Payment method', form.paymentMethod || '—'],
                   ['Strategy', form.strategy || '—'],
                   ['Risk tolerance', form.riskTolerance || '—'],
                   ['Reference', form.txReference || '—'],
@@ -242,7 +247,7 @@ export default function InvestmentApp() {
             <div className="space-y-6">
               <div className="rounded-[1.25rem] border border-[#2f2718] bg-[#12100c]/95 p-4 sm:p-6">
                 <div className="mb-5 flex flex-wrap gap-3">
-                  {['Client', 'Funding', 'Strategy', 'Review'].map((label, index) => (
+                  {['Client', 'Funding', 'Payment', 'Strategy', 'Review'].map((label, index) => (
                     <span
                       key={label}
                       className={`inline-flex items-center rounded-full border px-3 py-2 text-[11px] uppercase tracking-[0.28em] ${index === step ? 'border-[#c8a96e] bg-[#c8a96e]/10 text-[#d4b05f]' : index < step ? 'border-[#3b3227] text-[#7a6a50]' : 'border-[#2a2014] text-[#3a3020]'}`}
@@ -307,6 +312,30 @@ export default function InvestmentApp() {
                 {step === 2 && (
                   <div className="space-y-6">
                     <div>
+                      <label className={labelClass}>Payment method</label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {paymentMethods.map((method) => (
+                          <button
+                            key={method}
+                            type="button"
+                            onClick={() => setField('paymentMethod', method)}
+                            className={`rounded-2xl border px-4 py-4 text-left text-sm transition ${form.paymentMethod === method ? 'border-[#c8a96e] bg-[#c8a96e]/10 text-[#f7e9c8]' : 'border-[#2c2314] bg-[#0d0b08] text-[#b9a976]'}`}
+                          >
+                            {method}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-3xl border border-[#2a2014] bg-[#0d0b08] p-6">
+                      <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Payment note</div>
+                      <p className="mt-3 text-sm text-[#b3a37d]">This payment choice will be captured with your funding request for admin review.</p>
+                    </div>
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="space-y-6">
+                    <div>
                       <label className={labelClass}>Investment strategy</label>
                       <select className={`${inputClass} appearance-none`} value={form.strategy} onChange={(e) => setField('strategy', e.target.value)}>
                         <option value="">Choose strategy</option>
@@ -327,7 +356,7 @@ export default function InvestmentApp() {
                   </div>
                 )}
 
-                {step === 3 && (
+                {step === 4 && (
                   <div className="space-y-6">
                     <div className="rounded-3xl border border-[#2a2014] bg-[#0d0b08] p-6">
                       <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Funding confirmation</div>
@@ -343,12 +372,7 @@ export default function InvestmentApp() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {step === 4 && (
-                  <div className="space-y-6">
-                    <div className="rounded-3xl border border-[#2a2014] bg-[#0d0b08] p-6">
+                    <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-6">
                       <div className="mb-6">
                         <h2 className="text-xl font-semibold text-[#f7e9c8]">Review request</h2>
                         <p className="mt-2 text-sm text-[#b3a37d]">Confirm your details before submitting for admin review.</p>
@@ -360,9 +384,11 @@ export default function InvestmentApp() {
                           ['Phone', form.phone],
                           ['Amount', amountLabel || '—'],
                           ['Allocations', form.investTypes.join(', ') || '—'],
+                          ['Payment method', form.paymentMethod || '—'],
                           ['Strategy', form.strategy || '—'],
                           ['Risk tolerance', form.riskTolerance || '—'],
                           ['Reference', form.txReference || '—'],
+                          ['Funding source', form.fundingSource || '—'],
                         ].map(([label, value]) => (
                           <div key={label} className="rounded-2xl border border-[#2a2014] bg-[#11100d] p-4">
                             <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">{label}</div>
