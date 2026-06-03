@@ -25,12 +25,22 @@ export default function Dashboard() {
       try {
         const { data: account, error: accountError } = await supabase
           .from('accounts')
-          .select('id, portfolio_value, pending_deposits, active_strategies, cash_reserve')
+          .select('id, portfolio_value, invested_amount, pending_deposits, active_strategies')
           .eq('user_id', auth.user.id)
-          .single()
+          .maybeSingle()
 
-        if (accountError) throw accountError
-        if (!account) throw new Error('No account data found for this user.')
+        if (accountError) {
+          const accountErrorMessage = accountError.message || String(accountError)
+          if (accountErrorMessage.includes('Could not find the table') || accountErrorMessage.includes('schema cache')) {
+            throw new Error('Supabase schema unavailable. Verify your tables and try again.')
+          }
+          throw accountError
+        }
+
+        if (!account) {
+          setErr('No portfolio record found. Submit a funding request to initialize your account.')
+          return
+        }
 
         const { data: holdings, error: holdingsError } = await supabase
           .from('holdings')
@@ -38,7 +48,10 @@ export default function Dashboard() {
           .eq('account_id', account.id)
           .order('value', { ascending: false })
 
-        if (holdingsError) throw holdingsError
+        if (holdingsError) {
+          setErr(holdingsError.message || 'Unable to load holdings data.')
+          return
+        }
 
         const { data: recentTransactions, error: transactionsError } = await supabase
           .from('transactions')
@@ -47,7 +60,10 @@ export default function Dashboard() {
           .order('date', { ascending: false })
           .limit(10)
 
-        if (transactionsError) throw transactionsError
+        if (transactionsError) {
+          setErr(transactionsError.message || 'Unable to load recent transaction data.')
+          return
+        }
 
         if (mounted) {
           setData({
@@ -57,7 +73,10 @@ export default function Dashboard() {
           })
         }
       } catch (error) {
-        if (mounted) setErr(error.message || 'Unable to load portfolio data from Supabase.')
+        if (mounted) {
+          const errorMessage = error.message || String(error)
+          setErr(errorMessage || 'Unable to load portfolio data from Supabase.')
+        }
       } finally {
         if (mounted) setLoading(false)
       }
@@ -72,9 +91,12 @@ export default function Dashboard() {
   if (loading) return <div className="text-muted">Loading portfolio data...</div>
   if (err) return <div className="text-red-400">Error: {err}</div>
 
-  const { portfolio_value, pending_deposits, active_strategies, holdings, recentTransactions } = data
+  const { portfolio_value, invested_amount, pending_deposits, active_strategies, holdings, recentTransactions } = data
   const portfolioValue = portfolio_value || 0
+  const investedAmount = invested_amount || 0
   const totalHoldings = holdings.reduce((sum, holding) => sum + (holding.value || 0), 0)
+  const returnsAmount = investedAmount > 0 ? portfolioValue - investedAmount : 0
+  const returnsPct = investedAmount > 0 ? (returnsAmount / investedAmount) * 100 : 0
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -83,30 +105,35 @@ export default function Dashboard() {
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private client portal</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#f7e9c8] sm:text-4xl">Welcome back, {auth.user?.name.split(' ')[0] || 'Investor'}</h1>
-            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A polished view of your portfolio, holdings allocation, and recent activity.</p>
+            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A concise view of your account, returns and pending admin approvals.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Link to="/apply" className="inline-flex items-center justify-center rounded-2xl border border-[#7d6a40] bg-[#0f0d09]/80 px-5 py-3 text-sm font-semibold text-[#f2e6c8] hover:bg-[#1b1710] transition">New application</Link>
-            <button className="inline-flex items-center justify-center rounded-2xl bg-[#d4b05f] px-5 py-3 text-sm font-semibold text-black hover:bg-[#e2c16f] transition">Request review</button>
+            <Link to="/apply" className="inline-flex items-center justify-center rounded-2xl border border-[#7d6a40] bg-[#0f0d09]/80 px-5 py-3 text-sm font-semibold text-[#f2e6c8] hover:bg-[#1b1710] transition">Submit funding</Link>
+            <div className="inline-flex items-center justify-center rounded-2xl bg-[#d4b05f] px-5 py-3 text-sm font-semibold text-black">Admin review required</div>
           </div>
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-4">
         <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
           <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Portfolio value</div>
           <div className="text-4xl font-semibold text-[#f7e9c8]">${portfolioValue.toLocaleString()}</div>
-          <p className="mt-2 text-sm text-[#b3a37d]">Total assets under management across your private account.</p>
+          <p className="mt-2 text-sm text-[#b3a37d]">Current account value.</p>
         </div>
         <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
-          <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Pending deposits</div>
-          <div className="text-4xl font-semibold text-[#f7e9c8]">{pending_deposits || 0}</div>
-          <p className="mt-2 text-sm text-[#b3a37d]">Transfers currently awaiting settlement.</p>
+          <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Invested capital</div>
+          <div className="text-4xl font-semibold text-[#f7e9c8]">${investedAmount.toLocaleString()}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Total funded amount under review or allocation.</p>
         </div>
         <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
-          <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Active strategies</div>
-          <div className="text-4xl font-semibold text-[#f7e9c8]">{active_strategies || 0}</div>
-          <p className="mt-2 text-sm text-[#b3a37d]">Current mandates under active management.</p>
+          <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">Net return</div>
+          <div className="text-4xl font-semibold text-[#f7e9c8]">${returnsAmount.toLocaleString()}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Realized value above invested capital.</p>
+        </div>
+        <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-6">
+          <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50] mb-3">ROI</div>
+          <div className="text-4xl font-semibold text-[#f7e9c8]">{investedAmount ? `${returnsPct.toFixed(1)}%` : '—'}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Return on invested capital.</p>
         </div>
       </section>
 
@@ -115,9 +142,9 @@ export default function Dashboard() {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-[#f7e9c8]">Recent activity</h3>
-              <p className="text-sm text-[#b3a37d] mt-2">Latest settlement updates and transaction details.</p>
+              <p className="text-sm text-[#b3a37d] mt-2">Recent deposits and transaction statuses.</p>
             </div>
-            <div className="rounded-full bg-[#1a1720] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Performance snapshot</div>
+            <div className="rounded-full bg-[#1a1720] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Admin confirmed</div>
           </div>
           <div className="space-y-3">
             {(recentTransactions || []).map((tx) => (
@@ -131,6 +158,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+            {recentTransactions.length === 0 && <div className="text-sm text-[#b3a37d]">No recent transaction records are available.</div>}
           </div>
         </div>
 
@@ -138,7 +166,7 @@ export default function Dashboard() {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-[#f7e9c8]">Holdings allocation</h3>
-              <p className="text-sm text-[#b3a37d] mt-2">Asset mix across your private portfolio.</p>
+              <p className="text-sm text-[#b3a37d] mt-2">Current mix across your active positions.</p>
             </div>
             <div className="text-sm font-semibold text-[#d4b05f]">{totalHoldings ? `${((totalHoldings / portfolioValue) * 100).toFixed(0)}% invested` : '—'}</div>
           </div>
@@ -156,7 +184,6 @@ export default function Dashboard() {
           </ul>
         </div>
       </section>
-
     </div>
   )
 }

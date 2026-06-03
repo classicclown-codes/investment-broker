@@ -64,8 +64,9 @@ export function AuthProvider({ children }) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      setUser(normalizeUser(data.user))
-      return { ok: true }
+      const normalizedUser = normalizeUser(data.user)
+      setUser(normalizedUser)
+      return { ok: true, user: normalizedUser }
     } catch (error) {
       setUser(null)
       return { ok: false, error: error.message || 'Login failed' }
@@ -90,8 +91,9 @@ export function AuthProvider({ children }) {
         },
       })
       if (error) throw error
-      setUser(normalizeUser(data.user))
-      return { ok: true, needsConfirmation: !data.session }
+      const normalizedUser = normalizeUser(data.user)
+      setUser(normalizedUser)
+      return { ok: true, needsConfirmation: !data.session, user: normalizedUser }
     } catch (error) {
       return { ok: false, error: error.message || 'Signup failed' }
     } finally {

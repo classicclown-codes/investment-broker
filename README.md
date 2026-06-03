@@ -22,6 +22,9 @@ Authentication:
   - `VITE_ADMIN_EMAILS` (comma-separated admin email addresses)
 - Admin access is granted when `user_metadata.role` is `admin`, or when the user email matches `VITE_ADMIN_EMAILS`
 
+Database setup:
+- Run `supabase-schema.sql` in the Supabase SQL editor to create the required tables
+
 Deployment to Vercel:
 - A `vercel.json` config file is included for static build and API routes
 - Run `vercel deploy` to publish the site

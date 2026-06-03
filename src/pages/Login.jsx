@@ -46,13 +46,15 @@ export default function Login({ mode = 'login' }) {
       return
     }
 
-    if (isAdminMode && !auth.user?.isAdmin) {
+    const signedInUser = result.user || auth.user
+
+    if (isAdminMode && !signedInUser?.isAdmin) {
       await auth.signout()
       setError('Admin access is required for this portal.')
       return
     }
 
-    const destination = isAdminMode ? '/admin' : auth.user?.isAdmin && from !== '/admin' ? '/admin' : from
+    const destination = isAdminMode ? '/admin' : signedInUser?.isAdmin && from !== '/admin' ? '/admin' : from
     navigate(destination, { replace: true })
   }
 

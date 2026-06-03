@@ -11,7 +11,6 @@ import { useAuth } from './context/AuthContext'
 
 export default function AppRouter() {
   const auth = useAuth()
-  const showAdminLogin = Boolean(import.meta.env.VITE_ADMIN_EMAILS)
   const navLinkClass = 'rounded-xl px-3 py-2 text-center text-sm transition hover:bg-[#c8a96e]/10'
   const outlineLinkClass = 'rounded-xl border border-[#4d3d14] px-3 py-2 text-center text-sm transition hover:bg-[#c8a96e]/10'
 
@@ -23,9 +22,8 @@ export default function AppRouter() {
           <div className="flex flex-wrap gap-2 sm:items-center">
             <Link to="/" className={navLinkClass}>Home</Link>
             <Link to="/dashboard" className={navLinkClass}>Dashboard</Link>
-            <Link to="/apply" className={navLinkClass}>Apply</Link>
+            <Link to="/apply" className={navLinkClass}>Fund</Link>
             {auth.user?.isAdmin && <Link to="/admin" className={navLinkClass}>Admin</Link>}
-            {!auth.user && showAdminLogin && <Link to="/admin-login" className={navLinkClass}>Admin login</Link>}
             {auth.user ? (
               <button onClick={auth.signout} className={`${outlineLinkClass} rounded-xl`}>Sign out</button>
             ) : (
