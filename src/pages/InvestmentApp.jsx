@@ -1,6 +1,8 @@
-﻿import React, { useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 
 const steps = ["Profile", "Investment", "Strategy", "Deposit", "Review"];
+const APP_HISTORY_KEY = 'aurum-application-history'
+const DRAFT_KEY = 'aurum-application-draft'
 
 const formatCurrency = (val) => val ? "$" + Number(val).toLocaleString() : "";
 
@@ -53,8 +55,18 @@ function CopyButton({ text }) {
 export default function App() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
   const [selectedCoin, setSelectedCoin] = useState("USDT");
-  const [form, setForm] = useState({
+  const [applications, setApplications] = useState(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(window.localStorage.getItem(APP_HISTORY_KEY)) || []
+    } catch {
+      return []
+    }
+  });
+
+  const initialForm = {
     fullName: "",
     email: "",
     phone: "",
@@ -76,7 +88,31 @@ export default function App() {
     txHash: "",
     depositCoin: "USDT",
     agreeTerms: false,
-  });
+  };
+
+  const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const draft = JSON.parse(window.localStorage.getItem(DRAFT_KEY))
+      if (draft) {
+        setForm((prev) => ({ ...prev, ...draft }))
+      }
+    } catch {
+      // ignore invalid draft data
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || submitted) return
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+  }, [form, submitted]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(APP_HISTORY_KEY, JSON.stringify(applications))
+  }, [applications]);
 
   const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
   const toggle = (key, value) => setForm((prev) => ({
@@ -150,8 +186,10 @@ export default function App() {
               type="button"
               onClick={() => {
                 setSubmitted(false);
+                setSubmittedData(null);
                 setStep(0);
-                setForm((prev) => ({ ...prev, agreeTerms: false, txHash: "" }));
+                setSelectedCoin("USDT");
+                setForm(initialForm);
               }}
               className="mx-auto rounded-2xl border border-[#c8a96e]/40 bg-[#c8a96e]/10 px-7 py-3 text-sm font-semibold text-[#d4b05f] transition hover:bg-[#c8a96e]/15"
             >
@@ -445,7 +483,21 @@ export default function App() {
                   onClick={() => {
                     if (!canNext()) return;
                     if (step === 4) {
+                      const entry = {
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        createdAt: new Date().toISOString(),
+                        name: form.fullName,
+                        email: form.email,
+                        strategy: form.strategy,
+                        riskTolerance: form.riskTolerance,
+                        depositCoin: form.depositCoin,
+                        txHash: form.txHash,
+                        investment: displayAmount,
+                      };
+                      setApplications((prev) => [entry, ...prev].slice(0, 5));
+                      setSubmittedData(entry);
                       setSubmitted(true);
+                      window.localStorage.removeItem(DRAFT_KEY);
                     } else {
                       setStep((current) => Math.min(4, current + 1));
                     }
@@ -461,6 +513,27 @@ export default function App() {
               <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-5">
                 <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private advisory</div>
                 <div className="mt-4 text-sm text-[#f2e9c8]">Your application is reviewed by our dedicated private client team, ensuring a bespoke strategy and secure execution.</div>
+              </div>
+              <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-5">
+                <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50] mb-4">Recent applications</div>
+                {applications.length === 0 ? (
+                  <p className="text-sm text-[#b3a37d]">No saved applications yet. Submit one to preserve it here.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {applications.map((entry) => (
+                      <div key={entry.id} className="rounded-2xl border border-[#2a2014] bg-[#0d0b08] p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="font-semibold text-[#f7e9c8]">{entry.name || entry.email}</div>
+                            <div className="text-xs text-[#7a6a50]">{new Date(entry.createdAt).toLocaleDateString()}</div>
+                          </div>
+                          <span className="rounded-full bg-[#c8a96e]/10 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-[#d4b05f]">{entry.depositCoin}</span>
+                        </div>
+                        <div className="mt-3 text-sm text-[#b3a37d]">{entry.investment} • {entry.strategy ? entry.strategy.charAt(0).toUpperCase() + entry.strategy.slice(1) : 'Strategy pending'}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-5">
                 <div className="flex items-center gap-3">
