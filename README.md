@@ -15,11 +15,12 @@ npm run preview
 ```
 
 Authentication:
-- Supabase Auth powers email/password signup, email/password login, and Google OAuth
+- Supabase Auth powers email/password signup and login
 - Copy `.env.example` to `.env.local` and set:
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
-- In Supabase, enable Google under Authentication providers and add your app URL to the allowed redirect URLs
+  - `VITE_ADMIN_EMAILS` (comma-separated admin email addresses)
+- Admin access is granted when `user_metadata.role` is `admin`, or when the user email matches `VITE_ADMIN_EMAILS`
 
 Deployment to Vercel:
 - A `vercel.json` config file is included for static build and API routes

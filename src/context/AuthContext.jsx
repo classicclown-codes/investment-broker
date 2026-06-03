@@ -3,8 +3,18 @@ import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
+const adminEmails = import.meta.env.VITE_ADMIN_EMAILS
+  ? import.meta.env.VITE_ADMIN_EMAILS.split(',').map((email) => email.trim().toLowerCase())
+  : []
+
 function normalizeUser(user) {
   if (!user) return null
+
+  const email = user.email?.toLowerCase()
+  const isAdmin = Boolean(
+    user.user_metadata?.role === 'admin' ||
+    (email && adminEmails.includes(email))
+  )
 
   return {
     id: user.id,
@@ -12,6 +22,7 @@ function normalizeUser(user) {
     name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
     picture: user.user_metadata?.avatar_url || user.user_metadata?.picture,
     provider: user.app_metadata?.provider || 'email',
+    isAdmin,
   }
 }
 
@@ -88,21 +99,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const signInWithGoogle = async () => {
-    if (!isSupabaseConfigured) {
-      return { ok: false, error: 'Supabase is not configured yet.' }
-    }
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
-    })
-
-    return error ? { ok: false, error: error.message } : { ok: true }
-  }
-
   const signout = async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut()
@@ -111,7 +107,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signin, signup, signInWithGoogle, signout, isSupabaseConfigured }}>
+    <AuthContext.Provider value={{ user, loading, signin, signup, signout, isSupabaseConfigured, isAdmin: user?.isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

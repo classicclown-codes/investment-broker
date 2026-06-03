@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 export default function Login({ mode = 'login' }) {
   const isSignup = mode === 'signup'
+  const isAdminMode = mode === 'admin'
   const auth = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -12,7 +13,19 @@ export default function Login({ mode = 'login' }) {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const from = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname || (isAdminMode ? '/admin' : '/dashboard')
+
+  const title = isAdminMode
+    ? 'Admin portal login'
+    : isSignup
+    ? 'Open a client account'
+    : 'Secure client login'
+
+  const description = isAdminMode
+    ? 'Authorized administrators sign in to manage private client portfolios and account workflows.'
+    : isSignup
+    ? 'Create your secure portal access before starting onboarding.'
+    : 'Sign in to manage your portfolio, view performance, and submit new investment requests.'
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -33,15 +46,14 @@ export default function Login({ mode = 'login' }) {
       return
     }
 
-    navigate(from, { replace: true })
-  }
-
-  const handleGoogle = async () => {
-    setError('')
-    const result = await auth.signInWithGoogle()
-    if (!result.ok) {
-      setError(result.error || 'Google sign in failed')
+    if (isAdminMode && !auth.user?.isAdmin) {
+      await auth.signout()
+      setError('Admin access is required for this portal.')
+      return
     }
+
+    const destination = isAdminMode ? '/admin' : auth.user?.isAdmin && from !== '/admin' ? '/admin' : from
+    navigate(destination, { replace: true })
   }
 
   return (
@@ -49,12 +61,8 @@ export default function Login({ mode = 'login' }) {
       <div className="w-full max-w-md rounded-[1.25rem] border border-[#3b3120] bg-surface p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="mb-6">
           <div className="mb-2 text-[0.68rem] uppercase tracking-[0.28em] text-muted sm:text-xs sm:tracking-[0.35em]">Aurum Capital</div>
-          <h2 className="text-2xl font-semibold text-[#f7e9c8] sm:text-3xl">{isSignup ? 'Open a client account' : 'Secure client login'}</h2>
-          <p className="text-sm text-muted mt-2">
-            {isSignup
-              ? 'Create your secure portal access before starting onboarding.'
-              : 'Sign in to manage your portfolio, view performance, and submit new investment requests.'}
-          </p>
+          <h2 className="text-2xl font-semibold text-[#f7e9c8] sm:text-3xl">{title}</h2>
+          <p className="text-sm text-muted mt-2">{description}</p>
         </div>
 
         {!auth.isSupabaseConfigured && (
@@ -110,22 +118,13 @@ export default function Login({ mode = 'login' }) {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <div className="text-xs uppercase tracking-[0.35em] text-muted mb-3">or</div>
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={!auth.isSupabaseConfigured}
-            className="inline-flex items-center justify-center gap-3 w-full px-4 py-3 border border-[#b89e55] rounded-2xl font-semibold text-[#f7e9c8] hover:bg-[#d4b05f]/10 transition disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Continue with Google
-          </button>
-        </div>
-
         <div className="mt-5 text-sm text-center text-muted">
-          {isSignup ? 'Already approved?' : 'New client?'}{' '}
-          <Link to={isSignup ? '/login' : '/signup'} className="text-[#d4b05f] hover:text-[#e8cc7b]">
-            {isSignup ? 'Sign in' : 'Create an account'}
+          {isAdminMode ? 'Not an admin? ' : isSignup ? 'Already approved? ' : 'New client? '}
+          <Link
+            to={isAdminMode ? '/login' : isSignup ? '/login' : '/signup'}
+            className="text-[#d4b05f] hover:text-[#e8cc7b]"
+          >
+            {isAdminMode ? 'Client login' : isSignup ? 'Sign in' : 'Create an account'}
           </Link>
         </div>
         <div className="mt-4 text-sm text-center">
