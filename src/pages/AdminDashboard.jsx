@@ -24,7 +24,7 @@ export default function AdminDashboard() {
         const [{ data: clientData, error: clientError }, { data: paymentData, error: paymentError }] = await Promise.all([
           supabase
             .from('clients')
-            .select('id,name,email,portfolio_value,status,strategy,holdings,last_activity')
+            .select('id,name,email,portfolio_value,status,strategy,holdings,last_activity,account_id')
             .order('name', { ascending: true }),
           supabase
             .from('transactions')
@@ -50,6 +50,7 @@ export default function AdminDashboard() {
           setClients(
             (clientData || []).map((item) => ({
               id: item.id,
+              accountId: item.account_id,
               name: item.name,
               email: item.email,
               portfolioValue: item.portfolio_value || 0,
@@ -65,6 +66,7 @@ export default function AdminDashboard() {
               .filter((tx) => ['pending', 'awaiting_confirmation', 'submitted'].includes((tx.status || '').toLowerCase()))
               .map((tx) => ({
                 id: tx.id,
+                accountId: tx.account_id,
                 reference: tx.reference || tx.id,
                 amount: tx.amount,
                 asset: tx.asset,
@@ -97,17 +99,36 @@ export default function AdminDashboard() {
   const totalAssets = clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
   const activeClients = clients.filter((client) => client.status === 'Active').length
   const pendingReviewCount = pendingPayments.length
+  const projectedGrowthMin = totalAssets * 0.2
+  const projectedGrowthMax = totalAssets * 0.3
 
   const handleConfirmPayment = async (paymentId) => {
     setPaymentError(null)
     try {
-      const { error } = await supabase
+      const payment = pendingPayments.find((item) => item.id === paymentId)
+      const { error: transactionError } = await supabase
         .from('transactions')
         .update({ status: 'Confirmed' })
         .eq('id', paymentId)
 
-      if (error) throw error
-      setPendingPayments((prev) => prev.filter((payment) => payment.id !== paymentId))
+      if (transactionError) throw transactionError
+
+      if (payment?.accountId) {
+        const { error: clientError } = await supabase
+          .from('clients')
+          .update({ status: 'Active' })
+          .eq('account_id', payment.accountId)
+
+        if (clientError) throw clientError
+
+        setClients((prev) =>
+          prev.map((client) =>
+            client.accountId === payment.accountId ? { ...client, status: 'Active' } : client
+          )
+        )
+      }
+
+      setPendingPayments((prev) => prev.filter((paymentItem) => paymentItem.id !== paymentId))
     } catch (err) {
       setPaymentError(err.message || 'Unable to confirm payment.')
     }
@@ -127,7 +148,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-4">
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Total AUM</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">${totalAssets.toLocaleString()}</div>
@@ -139,6 +160,17 @@ export default function AdminDashboard() {
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Pending reviews</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">{pendingReviewCount}</div>
+        </div>
+        <div className="surface-card p-5">
+          <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Projected growth</div>
+          <div className="text-3xl font-semibold text-[#f7e9c8]">
+            {activeClients > 0
+              ? `$${projectedGrowthMin.toLocaleString()} - $${projectedGrowthMax.toLocaleString()}`
+              : '20-30%'}
+          </div>
+          <p className="mt-2 text-sm text-[#b3a37d]">
+            Active portfolios are positioned for 20-30% interest projection, reflecting disciplined capital deployment.
+          </p>
         </div>
       </section>
 

@@ -118,7 +118,7 @@ export default function Dashboard() {
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private client portal</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#f7e9c8] sm:text-4xl">Welcome back, {auth.user?.name.split(' ')[0] || 'Investor'}</h1>
-            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A concise view of your account, returns and pending admin approvals.</p>
+            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A concise view of your account, returns and pending admin approvals with a disciplined growth target of 20-30% interest.</p>
             {noAccount && (
               <div className="mt-4 rounded-3xl border border-[#4a3c29] bg-[#19150f] p-4 text-sm text-[#d4b05f]">
                 <p className="font-semibold text-[#f7e9c8]">Account setup needed</p>

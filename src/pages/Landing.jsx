@@ -29,9 +29,9 @@ export default function Landing() {
         <section className="surface-card p-6 sm:p-8">
           <div className="space-y-5 text-center">
             <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private wealth management</p>
-            <h1 className="text-4xl font-semibold tracking-tight text-[#f7e9c8] sm:text-5xl">A secure portal for preserved capital.</h1>
+            <h1 className="text-4xl font-semibold tracking-tight text-[#f7e9c8] sm:text-5xl">A secure portal for preserved capital and disciplined growth.</h1>
             <p className="mx-auto max-w-2xl text-sm leading-7 text-[#b3a37d] sm:text-base">
-              Manage funding requests, monitor portfolio status, and keep capital deployments under admin review with a high-end client experience.
+              Manage funding requests, monitor portfolio status, and keep capital deployments under admin review with a high-end client experience designed for disciplined 20-30% growth targeting.
             </p>
             <div className="mx-auto flex max-w-sm flex-col gap-3 sm:flex-row sm:justify-center">
               <Link to="/login" className="brand-button inline-flex justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-black">
@@ -56,6 +56,23 @@ export default function Landing() {
           <div className="surface-panel p-5">
             <h2 className="text-lg font-semibold text-[#f7e9c8]">Admin review</h2>
             <p className="mt-3 text-sm text-[#b3a37d]">Deposit confirmations are managed by admin for secure settlement and oversight.</p>
+          </div>
+        </section>
+
+        <section className="surface-card p-6 sm:p-8">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="surface-panel p-5">
+              <h2 className="text-lg font-semibold text-[#f7e9c8]">Growth outlook</h2>
+              <p className="mt-3 text-sm text-[#b3a37d]">
+                Our portfolio process is built for selective capital deployment and a professional 20-30% interest projection across eligible client allocations.
+              </p>
+            </div>
+            <div className="surface-panel p-5">
+              <h2 className="text-lg font-semibold text-[#f7e9c8]">Preserved access</h2>
+              <p className="mt-3 text-sm text-[#b3a37d]">
+                Funding requests are reviewed by admin, ensuring secure onboarding and aligned investment execution before settlement.
+              </p>
+            </div>
           </div>
         </section>
 
