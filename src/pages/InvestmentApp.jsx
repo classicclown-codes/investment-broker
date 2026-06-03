@@ -228,9 +228,9 @@ export default function InvestmentApp() {
   }
 
   return (
-    <div className="bg-[#090705] py-4 text-[#f2e9c8] sm:py-8">
+    <div className="min-h-screen bg-[#090705] px-4 py-6 text-[#f2e9c8] sm:px-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
-        <div className="rounded-[1.25rem] border border-[#3b2f1f] bg-[#0f0d08]/95 p-4 shadow-[0_35px_90px_rgba(0,0,0,0.45)] sm:p-6 md:p-10">
+        <div className="surface-card shadow-[0_35px_90px_rgba(0,0,0,0.45)] p-4 sm:p-6 md:p-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Funding request</p>
@@ -245,7 +245,7 @@ export default function InvestmentApp() {
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.9fr_1fr]">
             <div className="space-y-6">
-              <div className="rounded-[1.25rem] border border-[#2f2718] bg-[#12100c]/95 p-4 sm:p-6">
+              <div className="surface-card p-4 sm:p-6">
                 <div className="mb-5 flex flex-wrap gap-3">
                   {['Client', 'Funding', 'Payment', 'Strategy', 'Review'].map((label, index) => (
                     <span
@@ -358,7 +358,7 @@ export default function InvestmentApp() {
 
                 {step === 4 && (
                   <div className="space-y-6">
-                    <div className="rounded-3xl border border-[#2a2014] bg-[#0d0b08] p-6">
+                    <div className="surface-panel p-6">
                       <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Funding confirmation</div>
                       <p className="mt-3 text-sm text-[#b3a37d]">Provide the reference used for your transfer. Admin will confirm payment before funding is finalized.</p>
                       <div className="mt-6 grid gap-4">
@@ -372,7 +372,7 @@ export default function InvestmentApp() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-6">
+                    <div className="surface-panel p-6">
                       <div className="mb-6">
                         <h2 className="text-xl font-semibold text-[#f7e9c8]">Review request</h2>
                         <p className="mt-2 text-sm text-[#b3a37d]">Confirm your details before submitting for admin review.</p>
@@ -430,7 +430,7 @@ export default function InvestmentApp() {
                     setStep((current) => Math.min(4, current + 1))
                   }}
                   disabled={submitting || !canNext()}
-                  className={`rounded-2xl px-6 py-3 text-sm font-semibold transition ${canNext() && !submitting ? 'bg-[#c8a96e] text-[#0d0a06] shadow-[0_15px_35px_rgba(212,176,95,0.25)] hover:bg-[#e0c480]' : 'bg-[#1d1911] text-[#4c452f] cursor-not-allowed'}`}
+                  className={`brand-button rounded-2xl px-6 py-3 text-sm font-semibold transition ${submitting || !canNext() ? 'opacity-50 cursor-not-allowed bg-[#1d1911] text-[#4c452f]' : ''}`}
                 >
                   {submitting ? 'Submitting...' : step === 4 ? 'Submit request' : 'Continue'}
                 </button>
@@ -440,7 +440,7 @@ export default function InvestmentApp() {
               )}
             </div>
 
-            <aside className="space-y-4 rounded-[1.25rem] border border-[#2f2718] bg-[#10100c]/95 p-4 text-sm text-[#b9a976] sm:space-y-6 sm:p-6">
+            <aside className="space-y-4 surface-card p-4 text-sm text-[#b9a976] sm:space-y-6 sm:p-6">
               <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-5">
                 <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Admin review process</div>
                 <div className="mt-4 text-sm text-[#f2e9c8]">Your request is routed to admin for confirmation. Payment is only finalized after approval.</div>

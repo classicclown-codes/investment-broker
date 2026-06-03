@@ -114,13 +114,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 px-4 py-6 text-[#f2e9c8] sm:px-6 sm:py-8 sm:space-y-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Admin dashboard</h2>
           <p className="text-sm text-muted mt-2 max-w-2xl">Review funding requests, confirm payments, and manage client portfolios.</p>
         </div>
-        <div className="rounded-3xl border border-[#3b3120] bg-surface px-5 py-4 text-sm text-[#f2e9c8]">
+        <div className="surface-card p-5 text-sm text-[#f2e9c8]">
           <div className="text-xs uppercase tracking-[0.3em] text-[#7a6a50]">Signed in as</div>
           <div className="mt-2 font-semibold text-[#f7e9c8]">{auth.user?.name || auth.user?.email}</div>
           <div className="text-xs text-[#b3a37d]">Admin access</div>
@@ -128,22 +128,22 @@ export default function AdminDashboard() {
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-5">
+        <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Total AUM</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">${totalAssets.toLocaleString()}</div>
         </div>
-        <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-5">
+        <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Active clients</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">{activeClients}</div>
         </div>
-        <div className="rounded-[1.25rem] border border-[#3b3120] bg-surface p-5">
+        <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Pending reviews</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">{pendingClients}</div>
         </div>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-[1.25rem] border border-[#2c2418] bg-[#11100b] p-6">
+        <div className="surface-card p-6">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-[#f7e9c8]">Client portfolio overview</h3>
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
           ) : clients.length === 0 ? (
             <div className="text-sm text-[#b3a37d]">No client records are available yet.</div>
           ) : (
-            <div className="overflow-hidden rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
+            <div className="overflow-x-auto rounded-[1.25rem] border border-[#2a2014] bg-[#0d0b08]">
               <div className="grid grid-cols-6 gap-4 border-b border-[#2a2014] bg-[#11100d] px-4 py-3 text-xs uppercase tracking-[0.32em] text-[#7a6a50]">
                 <div className="col-span-2">Client</div>
                 <div>Portfolio</div>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <aside className="space-y-4 rounded-[1.25rem] border border-[#2f2718] bg-[#10100c]/95 p-5 text-sm text-[#b9a976]">
+        <aside className="space-y-4 surface-card p-5 text-sm text-[#b9a976]">
           <div className="rounded-3xl border border-[#2a2014] bg-[#11100d] p-5">
             <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Pending payment approvals</div>
             <div className="mt-4 space-y-3">
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => handleConfirmPayment(payment.id)}
-                        className="rounded-2xl border border-[#c8a96e] bg-[#d4b05f] px-3 py-2 text-xs font-semibold text-black transition hover:bg-[#e0c480]"
+                        className="brand-button rounded-2xl px-3 py-2 text-xs font-semibold text-black"
                       >
                         Confirm
                       </button>

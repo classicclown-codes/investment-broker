@@ -28,6 +28,37 @@ body {
   color: #f2e9c8;
 }
 
+.surface-card {
+  background: rgba(15, 11, 7, 0.86);
+  border: 1px solid rgba(215, 182, 106, 0.22);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  border-radius: 1.5rem;
+}
+
+.surface-panel {
+  background: rgba(17, 14, 10, 0.93);
+  border: 1px solid rgba(215, 182, 106, 0.14);
+  border-radius: 1.5rem;
+}
+
+.brand-button {
+  background: #d4b05f;
+  color: #080500;
+  border: 1px solid rgba(212, 176, 95, 0.25);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.brand-button:hover {
+  background: #f2c94c;
+  transform: translateY(-1px);
+}
+
+.brand-badge {
+  background: rgba(212, 176, 95, 0.12);
+  color: #d4b05f;
+  border: 1px solid rgba(212, 176, 95, 0.2);
+}
+
 .text-muted {
   color: var(--muted);
 }

@@ -59,16 +59,16 @@ export default function Login({ mode = 'login' }) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-start justify-center px-0 py-4 sm:items-center sm:px-4 sm:py-8">
-      <div className="w-full max-w-md rounded-[1.25rem] border border-[#3b3120] bg-surface p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-6">
+    <div className="min-h-screen bg-[#090705] px-4 py-6 text-[#f2e9c8] sm:px-6 sm:py-10 flex items-center justify-center">
+      <div className="w-full max-w-md surface-card p-6 sm:p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-6">
           <div className="mb-2 text-[0.68rem] uppercase tracking-[0.28em] text-muted sm:text-xs sm:tracking-[0.35em]">Aurum Capital</div>
           <h2 className="text-2xl font-semibold text-[#f7e9c8] sm:text-3xl">{title}</h2>
-          <p className="text-sm text-muted mt-2">{description}</p>
+          <p className="text-sm text-[#b3a37d] mt-2">{description}</p>
         </div>
 
         {!auth.isSupabaseConfigured && (
-          <div className="mb-4 rounded-2xl border border-[#7d4f2d] bg-[#2a160d] px-4 py-3 text-sm text-[#f0c39b]">
+          <div className="mb-4 surface-panel px-4 py-3 text-sm text-[#f0c39b]">
             Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to your environment to enable authentication.
           </div>
         )}
@@ -114,7 +114,7 @@ export default function Login({ mode = 'login' }) {
           <button
             type="submit"
             disabled={auth.loading || !auth.isSupabaseConfigured}
-            className="w-full rounded-2xl bg-[#d4b05f] px-4 py-3 font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+            className="brand-button w-full rounded-2xl px-4 py-3 font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSignup ? 'Create account' : 'Sign in'}
           </button>
