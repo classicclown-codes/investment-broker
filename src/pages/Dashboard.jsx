@@ -112,6 +112,10 @@ export default function Dashboard() {
   const returnsPct = investedAmount > 0 ? (returnsAmount / investedAmount) * 100 : 0
   const hasPendingDeposits = pending_deposits > 0
   const isInvestmentActive = !hasPendingDeposits && portfolioValue > 0
+  const pageMessage = hasPendingDeposits
+    ? 'Your funding request is under admin review and will begin tracking after confirmation.'
+    : 'Your approved allocation is live and being tracked with performance signals and portfolio discipline.'
+  const statusLabel = hasPendingDeposits ? 'Awaiting approval' : 'Performance live'
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -120,7 +124,7 @@ export default function Dashboard() {
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private client portal</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#f7e9c8] sm:text-4xl">Welcome back, {auth.user?.name.split(' ')[0] || 'Investor'}</h1>
-            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A concise view of your account, returns and pending admin approvals with a disciplined growth target of 20-30% interest.</p>
+            <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">{pageMessage}</p>
             {noAccount && (
               <div className="mt-4 rounded-3xl border border-[#4a3c29] bg-[#19150f] p-4 text-sm text-[#d4b05f]">
                 <p className="font-semibold text-[#f7e9c8]">Account setup needed</p>
@@ -194,7 +198,7 @@ export default function Dashboard() {
               <h3 className="text-lg font-semibold text-[#f7e9c8]">Recent activity</h3>
               <p className="text-sm text-[#b3a37d] mt-2">Recent deposits and transaction statuses.</p>
             </div>
-            <div className="rounded-full bg-[#1a1720] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Admin confirmed</div>
+            <div className="rounded-full bg-[#1a1720] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#7a6a50]">{statusLabel}</div>
           </div>
           <div className="space-y-3">
             {(recentTransactions || []).map((tx) => (

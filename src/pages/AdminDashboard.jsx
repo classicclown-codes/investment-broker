@@ -96,10 +96,14 @@ export default function AdminDashboard() {
     }
   }, [])
 
-  const requestsTotal = fundingRequests.reduce((sum, request) => sum + (request.amount || 0), 0)
-  const totalAssets = requestsTotal || clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
+  const confirmedAUM = clients.reduce((sum, client) => sum + (client.portfolioValue || 0), 0)
+  const pendingAUM = fundingRequests
+    .filter((request) => ['pending', 'awaiting_confirmation', 'submitted'].includes((request.status || '').toLowerCase()))
+    .reduce((sum, request) => sum + (request.amount || 0), 0)
+  const totalAssets = confirmedAUM + pendingAUM
   const activeClients = clients.filter((client) => client.status === 'Active').length
   const pendingReviewCount = pendingPayments.length
+  const pendingRequestCount = fundingRequests.filter((request) => ['pending', 'awaiting_confirmation', 'submitted'].includes((request.status || '').toLowerCase())).length
   const projectedGrowthMin = totalAssets * 0.2
   const projectedGrowthMax = totalAssets * 0.3
 
@@ -115,16 +119,38 @@ export default function AdminDashboard() {
       if (transactionError) throw transactionError
 
       if (payment?.accountId) {
+        const { data: accountData, error: accountFetchError } = await supabase
+          .from('accounts')
+          .select('portfolio_value,pending_deposits')
+          .eq('id', payment.accountId)
+          .single()
+
+        if (accountFetchError) throw accountFetchError
+
+        const newPortfolioValue = (accountData.portfolio_value || 0) + (payment.amount || 0)
+        const newPendingDeposits = Math.max(0, (accountData.pending_deposits || 0) - (payment.amount || 0))
+
         const { error: accountError } = await supabase
           .from('accounts')
-          .update({ portfolio_value: payment.amount || 0, pending_deposits: 0 })
+          .update({ portfolio_value: newPortfolioValue, pending_deposits: newPendingDeposits })
           .eq('id', payment.accountId)
 
         if (accountError) throw accountError
 
+        const { data: clientData, error: clientFetchError } = await supabase
+          .from('clients')
+          .select('portfolio_value')
+          .eq('account_id', payment.accountId)
+          .single()
+
+        if (clientFetchError) throw clientFetchError
+
         const { error: clientError } = await supabase
           .from('clients')
-          .update({ status: 'Active', portfolio_value: payment.amount || 0 })
+          .update({
+            status: 'Active', 
+            portfolio_value: (clientData.portfolio_value || 0) + (payment.amount || 0),
+          })
           .eq('account_id', payment.accountId)
 
         if (clientError) throw clientError
@@ -132,7 +158,11 @@ export default function AdminDashboard() {
         setClients((prev) =>
           prev.map((client) =>
             client.accountId === payment.accountId
-              ? { ...client, status: 'Active', portfolioValue: payment.amount || client.portfolioValue }
+              ? {
+                  ...client,
+                  status: 'Active',
+                  portfolioValue: (client.portfolioValue || 0) + (payment.amount || 0),
+                }
               : client
           )
         )
@@ -165,25 +195,22 @@ export default function AdminDashboard() {
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Total AUM</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">${totalAssets.toLocaleString()}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Confirmed capital plus deposits currently under review.</p>
         </div>
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Active clients</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">{activeClients}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Clients whose accounts are approved and live.</p>
         </div>
         <div className="surface-card p-5">
           <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Pending reviews</div>
           <div className="text-3xl font-semibold text-[#f7e9c8]">{pendingReviewCount}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Payment requests awaiting admin confirmation.</p>
         </div>
         <div className="surface-card p-5">
-          <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Projected growth</div>
-          <div className="text-3xl font-semibold text-[#f7e9c8]">
-            {activeClients > 0
-              ? `$${projectedGrowthMin.toLocaleString()} - $${projectedGrowthMax.toLocaleString()}`
-              : '20-30%'}
-          </div>
-          <p className="mt-2 text-sm text-[#b3a37d]">
-            Active portfolios are positioned for 20-30% interest projection, reflecting disciplined capital deployment.
-          </p>
+          <div className="text-xs uppercase tracking-[0.3em] text-muted mb-2">Pending deposits</div>
+          <div className="text-3xl font-semibold text-[#f7e9c8]">${pendingAUM.toLocaleString()}</div>
+          <p className="mt-2 text-sm text-[#b3a37d]">Total deposit requests submitted but not yet confirmed.</p>
         </div>
       </section>
 

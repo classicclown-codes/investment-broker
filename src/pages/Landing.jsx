@@ -27,19 +27,38 @@ export default function Landing() {
     <div className="min-h-screen bg-[#090705] px-4 py-6 text-[#f2e9c8] sm:px-6 sm:py-10">
       <div className="mx-auto max-w-6xl space-y-8">
         <section className="surface-card p-6 sm:p-8">
-          <div className="space-y-5 text-center">
-            <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private wealth management</p>
-            <h1 className="text-4xl font-semibold tracking-tight text-[#f7e9c8] sm:text-5xl">A secure portal for preserved capital and disciplined growth.</h1>
-            <p className="mx-auto max-w-2xl text-sm leading-7 text-[#b3a37d] sm:text-base">
-              Manage funding requests, monitor portfolio status, and keep capital deployments under admin review with a high-end client experience designed for disciplined 20-30% growth targeting.
-            </p>
-            <div className="mx-auto flex max-w-sm flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link to="/login" className="brand-button inline-flex justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-black">
-                Client login
-              </Link>
-              <Link to="/signup" className="inline-flex justify-center rounded-2xl border border-[#7d6a40] bg-[#11100b] px-6 py-3 text-sm font-semibold text-[#f2e6c8] transition hover:border-[#d4b05f]">
-                Request access
-              </Link>
+          <div className="grid gap-8 lg:grid-cols-[1.7fr_1fr] lg:items-center">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private wealth management</p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#f7e9c8] sm:text-5xl">Boutique capital oversight for ambitious investors.</h1>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-[#b3a37d] sm:text-base">
+                A refined portal for funding requests, portfolio monitoring, and disciplined admin-reviewed deployment that matches an elevated wealth experience.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link to="/login" className="brand-button inline-flex justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5">
+                  Client login
+                </Link>
+                <Link to="/signup" className="inline-flex justify-center rounded-2xl border border-[#7d6a40] bg-[#11100b] px-6 py-3 text-sm font-semibold text-[#f2e6c8] transition hover:border-[#d4b05f] hover:-translate-y-0.5">
+                  Request access
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-[1.5rem] border border-[#2a2014] bg-[#0b0905] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+              <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private track</div>
+              <div className="mt-4 text-xl font-semibold text-[#f7e9c8]">Built for deliberate capital deployment.</div>
+              <p className="mt-3 text-sm leading-7 text-[#b3a37d]">
+                Selective funding, admin verification, and portfolio signals for clients who expect precision, discretion, and performance-minded reporting.
+              </p>
+              <div className="mt-6 space-y-3 text-sm">
+                <div className="rounded-2xl bg-[#11100d] p-4">
+                  <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Admin-first funding</div>
+                  <div className="mt-1 text-[#f7e9c8]">Every request is reviewed before capital is deployed.</div>
+                </div>
+                <div className="rounded-2xl bg-[#11100d] p-4">
+                  <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Controlled growth</div>
+                  <div className="mt-1 text-[#f7e9c8]">Deposits are captured only after verification and strategy review.</div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
