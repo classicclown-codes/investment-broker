@@ -31,8 +31,58 @@ const initialForm = {
   investGoal: '',
   txReference: '',
   fundingSource: '',
+  depositCoin: 'USDT',
+  txHash: '',
   paymentMethod: '',
   agreeTerms: false,
+}
+
+const WALLETS = {
+  BTC: {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    color: '#f7931a',
+    address: 'bc1qzgfdme77qm0gqgh6e2lh0armmktpd6xmj0q2xa',
+    network: 'Bitcoin Network',
+  },
+  ETH: {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    color: '#627eea',
+    address: '0xeb34f556ba50243d54132c09BE94bB6Ffeb67c3F',
+    network: 'ERC-20 Network',
+  },
+  USDT: {
+    symbol: 'USDT',
+    name: 'Tether (USDT)',
+    color: '#26a17b',
+    address: 'TUV7NHn4bGYaVxeM3GhiBbr7rZTy1ZJCXn',
+    network: 'TRC-20 (TRON)',
+  },
+}
+
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold transition ${copied ? 'border-green-500/40 bg-green-500/10 text-green-400' : 'border-[#2c2314] bg-[#0d0b08] text-[#b9a976] hover:border-[#c8a96e] hover:text-[#f7e9c8]'}`}
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  )
 }
 
 function formatCurrency(value) {
@@ -139,9 +189,14 @@ export default function InvestmentApp() {
         asset: form.investTypes.join(', ') || 'Funding request',
         status: 'pending',
         date: new Date().toISOString().split('T')[0],
-        reference: form.txReference,
-        funding_source: form.fundingSource,
-        notes: [form.investGoal, form.paymentMethod ? `Payment method: ${form.paymentMethod}` : '']
+        reference: form.paymentMethod === 'Cryptocurrency' ? form.txHash : form.txReference,
+        funding_source: form.paymentMethod === 'Cryptocurrency' ? form.depositCoin : form.fundingSource,
+        notes: [
+          form.investGoal,
+          form.paymentMethod ? `Payment method: ${form.paymentMethod}` : '',
+          form.paymentMethod === 'Cryptocurrency' ? `Deposit coin: ${form.depositCoin}` : '',
+          form.txHash ? `TX hash: ${form.txHash}` : '',
+        ]
           .filter(Boolean)
           .join(' | '),
       }
@@ -175,7 +230,13 @@ export default function InvestmentApp() {
     if (step === 1) return form.investAmount && form.investTypes.length > 0
     if (step === 2) return Boolean(form.paymentMethod)
     if (step === 3) return form.strategy && form.riskTolerance
-    if (step === 4) return form.txReference.trim().length > 5 && form.fundingSource.trim().length > 5 && form.agreeTerms
+    if (step === 4) {
+      if (form.paymentMethod === 'Cryptocurrency') {
+        return form.txHash.trim().length > 10
+      }
+      return form.txReference.trim().length > 5 && form.fundingSource.trim().length > 5
+    }
+    if (step === 5) return form.agreeTerms
     return true
   }
 
@@ -247,7 +308,7 @@ export default function InvestmentApp() {
             <div className="space-y-6">
               <div className="surface-card p-4 sm:p-6">
                 <div className="mb-5 flex flex-wrap gap-3">
-                  {['Client', 'Funding', 'Payment', 'Strategy', 'Review'].map((label, index) => (
+                  {['Client', 'Funding', 'Payment', 'Strategy', 'Deposit', 'Review'].map((label, index) => (
                     <span
                       key={label}
                       className={`inline-flex items-center rounded-full border px-3 py-2 text-[11px] uppercase tracking-[0.28em] ${index === step ? 'border-[#c8a96e] bg-[#c8a96e]/10 text-[#d4b05f]' : index < step ? 'border-[#3b3227] text-[#7a6a50]' : 'border-[#2a2014] text-[#3a3020]'}`}
@@ -358,20 +419,64 @@ export default function InvestmentApp() {
 
                 {step === 4 && (
                   <div className="space-y-6">
-                    <div className="surface-panel p-6">
-                      <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Funding confirmation</div>
-                      <p className="mt-3 text-sm text-[#b3a37d]">Provide the reference used for your transfer. Admin will confirm payment before funding is finalized.</p>
-                      <div className="mt-6 grid gap-4">
-                        <div>
-                          <label className={labelClass}>Transaction reference</label>
-                          <input className={inputClass} placeholder="Enter reference" value={form.txReference} onChange={(e) => setField('txReference', e.target.value)} />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Funding source</label>
-                          <input className={inputClass} placeholder="Bank transfer or settlement source" value={form.fundingSource} onChange={(e) => setField('fundingSource', e.target.value)} />
+                    {form.paymentMethod === 'Cryptocurrency' ? (
+                      <div className="space-y-6">
+                        <div className="surface-panel p-6">
+                          <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Crypto deposit</div>
+                          <p className="mt-3 text-sm text-[#b3a37d]">Choose a wallet network, copy the address, and submit your transaction hash for verification.</p>
+                          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                            {Object.entries(WALLETS).map(([key, wallet]) => (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setField('depositCoin', key)}
+                                className={`rounded-2xl border px-4 py-4 text-left text-sm transition ${form.depositCoin === key ? 'border-[#c8a96e] bg-[#c8a96e]/10 text-[#f7e9c8]' : 'border-[#2c2314] bg-[#0d0b08] text-[#b9a976]'}`}
+                              >
+                                <div className="flex items-center justify-between gap-4">
+                                  <span className="font-semibold">{wallet.symbol}</span>
+                                  <span className="text-xs text-[#7a6a50]">{wallet.network}</span>
+                                </div>
+                                <div className="mt-2 text-sm text-[#b3a37d]">{wallet.name}</div>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="mt-6 rounded-3xl border border-[#2a2014] bg-[#0d0b08] p-5">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">{WALLETS[form.depositCoin].name}</div>
+                                <div className="mt-1 text-sm font-semibold text-[#f7e9c8]">{WALLETS[form.depositCoin].network}</div>
+                              </div>
+                              <CopyButton text={WALLETS[form.depositCoin].address} />
+                            </div>
+                            <div className="mt-4 break-all text-sm text-[#d4b05f]">{WALLETS[form.depositCoin].address}</div>
+                          </div>
+                          <div>
+                            <label className={labelClass}>Transaction hash</label>
+                            <input className={inputClass} placeholder="Paste transaction hash" value={form.txHash} onChange={(e) => setField('txHash', e.target.value)} />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="surface-panel p-6">
+                        <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Funding confirmation</div>
+                        <p className="mt-3 text-sm text-[#b3a37d]">Provide the reference used for your transfer. Admin will confirm payment before funding is finalized.</p>
+                        <div className="mt-6 grid gap-4">
+                          <div>
+                            <label className={labelClass}>Transaction reference</label>
+                            <input className={inputClass} placeholder="Enter reference" value={form.txReference} onChange={(e) => setField('txReference', e.target.value)} />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Funding source</label>
+                            <input className={inputClass} placeholder="Bank transfer or settlement source" value={form.fundingSource} onChange={(e) => setField('fundingSource', e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {step === 5 && (
+                  <div className="space-y-6">
                     <div className="surface-panel p-6">
                       <div className="mb-6">
                         <h2 className="text-xl font-semibold text-[#f7e9c8]">Review request</h2>
@@ -385,10 +490,11 @@ export default function InvestmentApp() {
                           ['Amount', amountLabel || '—'],
                           ['Allocations', form.investTypes.join(', ') || '—'],
                           ['Payment method', form.paymentMethod || '—'],
+                          ...(form.paymentMethod === 'Cryptocurrency'
+                            ? [['Deposit asset', form.depositCoin || '—'], ['TX hash', form.txHash || '—']]
+                            : [['Reference', form.txReference || '—'], ['Funding source', form.fundingSource || '—']]),
                           ['Strategy', form.strategy || '—'],
                           ['Risk tolerance', form.riskTolerance || '—'],
-                          ['Reference', form.txReference || '—'],
-                          ['Funding source', form.fundingSource || '—'],
                         ].map(([label, value]) => (
                           <div key={label} className="rounded-2xl border border-[#2a2014] bg-[#11100d] p-4">
                             <div className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">{label}</div>
@@ -423,16 +529,16 @@ export default function InvestmentApp() {
                   type="button"
                   onClick={() => {
                     if (!canNext()) return
-                    if (step === 4) {
+                    if (step === 5) {
                       submitFundingRequest()
                       return
                     }
-                    setStep((current) => Math.min(4, current + 1))
+                    setStep((current) => Math.min(5, current + 1))
                   }}
                   disabled={submitting || !canNext()}
                   className={`brand-button rounded-2xl px-6 py-3 text-sm font-semibold transition ${submitting || !canNext() ? 'opacity-50 cursor-not-allowed bg-[#1d1911] text-[#4c452f]' : ''}`}
                 >
-                  {submitting ? 'Submitting...' : step === 4 ? 'Submit request' : 'Continue'}
+                  {submitting ? 'Submitting...' : step === 5 ? 'Submit request' : 'Continue'}
                 </button>
               </div>
               {submitError && (
