@@ -95,7 +95,12 @@ export function AuthProvider({ children }) {
       setUser(normalizedUser)
       return { ok: true, needsConfirmation: !data.session, user: normalizedUser }
     } catch (error) {
-      return { ok: false, error: error.message || 'Signup failed' }
+      const message = error?.message || 'Signup failed'
+      const friendlyMessage =
+        message.toLowerCase().includes('rate limit') || error?.status === 429
+          ? 'Email send rate limit reached. Please wait a few minutes and try again, or use a different email address.'
+          : message
+      return { ok: false, error: friendlyMessage }
     } finally {
       setLoading(false)
     }
