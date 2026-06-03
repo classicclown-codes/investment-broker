@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
+  const [noAccount, setNoAccount] = useState(false)
 
   useEffect(() => {
     if (!auth.user) return
@@ -38,9 +39,20 @@ export default function Dashboard() {
         }
 
         if (!account) {
-          setErr('No portfolio record found. Submit a funding request to initialize your account.')
+          setNoAccount(true)
+          setErr(null)
+          setData({
+            portfolio_value: 0,
+            invested_amount: 0,
+            pending_deposits: 0,
+            active_strategies: '',
+            holdings: [],
+            recentTransactions: [],
+          })
           return
         }
+
+        setNoAccount(false)
 
         const { data: holdings, error: holdingsError } = await supabase
           .from('holdings')
@@ -74,6 +86,7 @@ export default function Dashboard() {
         }
       } catch (error) {
         if (mounted) {
+          setNoAccount(false)
           const errorMessage = error.message || String(error)
           setErr(errorMessage || 'Unable to load portfolio data from Supabase.')
         }
@@ -106,6 +119,18 @@ export default function Dashboard() {
             <p className="text-xs uppercase tracking-[0.35em] text-[#7a6a50]">Private client portal</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#f7e9c8] sm:text-4xl">Welcome back, {auth.user?.name.split(' ')[0] || 'Investor'}</h1>
             <p className="mt-3 max-w-2xl text-sm text-[#b3a37d]">A concise view of your account, returns and pending admin approvals.</p>
+            {noAccount && (
+              <div className="mt-4 rounded-3xl border border-[#4a3c29] bg-[#19150f] p-4 text-sm text-[#d4b05f]">
+                <p className="font-semibold text-[#f7e9c8]">Account setup needed</p>
+                <p className="mt-2 text-[#b3a37d]">No portfolio record was found for your user yet. Submit a funding request to initialize your account.</p>
+                <Link
+                  to="/apply"
+                  className="mt-4 inline-flex items-center rounded-2xl bg-[#c8a96e] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#e0c480]"
+                >
+                  Go to funding request
+                </Link>
+              </div>
+            )}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Link to="/apply" className="inline-flex items-center justify-center rounded-2xl border border-[#7d6a40] bg-[#0f0d09]/80 px-5 py-3 text-sm font-semibold text-[#f2e6c8] hover:bg-[#1b1710] transition">Submit funding</Link>
